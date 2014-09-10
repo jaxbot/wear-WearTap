@@ -8,6 +8,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -44,6 +47,29 @@ public class MyActivity extends ActionBarActivity implements GoogleApiClient.Con
         if (!mGoogleApiClient.isConnected()) {
             mGoogleApiClient.connect();
         }
+
+        try {
+            findViewById(R.id.somesome).setOnTouchListener(new OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    Log.d("T", "Touched!");
+                    int action = event.getAction() & MotionEvent.ACTION_MASK;
+                    if (action == MotionEvent.ACTION_DOWN) {
+                        new SendMessageTask("Down").execute();
+                    }
+                    if (action == MotionEvent.ACTION_UP) {
+                        new SendMessageTask("Up").execute();
+                    }
+
+                    return true;
+                }
+            });
+        }
+        catch (Exception e)
+        {
+
+        }
+
     }
 
 
