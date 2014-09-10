@@ -3,6 +3,7 @@ package me.jaxbot.wear.weartap;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.wearable.view.WatchViewStub;
+import android.util.Log;
 import android.widget.TextView;
 
 public class MyActivity extends Activity {
@@ -20,5 +21,7 @@ public class MyActivity extends Activity {
                 mTextView = (TextView) stub.findViewById(R.id.text);
             }
         });
+
+        Log.i("TrEllo", "SnDarkness");
     }
 }
