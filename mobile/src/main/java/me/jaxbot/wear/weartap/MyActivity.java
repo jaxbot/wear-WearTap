@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.http.AndroidHttpClient;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,6 +34,10 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,6 +71,8 @@ public class MyActivity extends ActionBarActivity implements GoogleApiClient.Con
 
     String regid;
 
+    long startClock = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,10 +102,10 @@ public class MyActivity extends ActionBarActivity implements GoogleApiClient.Con
                     Log.d("T", "Touched!");
                     int action = event.getAction() & MotionEvent.ACTION_MASK;
                     if (action == MotionEvent.ACTION_DOWN) {
-                        new SendMessageTask("Down").execute();
+                        startClock = SystemClock.elapsedRealtime();
                     }
                     if (action == MotionEvent.ACTION_UP) {
-                        new SendMessageTask("Up").execute();
+                        new SendMessageTask("Up", (int)(SystemClock.elapsedRealtime() - startClock)).execute();
                     }
 
                     return true;
@@ -263,7 +271,7 @@ public class MyActivity extends ActionBarActivity implements GoogleApiClient.Con
         if (mGoogleApiClient.isConnected()) {
 
             Log.d("C", "sending");
-            new SendMessageTask("Hello").execute();
+            //new SendMessageTask("Hello").execute();
 
             /*
             PutDataMapRequest putDataMapRequest = PutDataMapRequest.create("/jme/test");
@@ -288,21 +296,24 @@ public class MyActivity extends ActionBarActivity implements GoogleApiClient.Con
     }
     private class SendMessageTask extends AsyncTask<String, Void, Void> {
         String msg;
+        int duration;
 
-        public SendMessageTask(String msg)
+        public SendMessageTask(String msg, int duration)
         {
             this.msg = msg;
+            this.duration = duration;
         }
 
         protected Void doInBackground(String ... params) {
 
-            NodeApi.GetConnectedNodesResult nodes =
-                    Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
-            for (Node node : nodes.getNodes()) {
-                Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(),
-                        msg, null);
+            AndroidHttpClient http = AndroidHttpClient.newInstance("WearTap");
+            HttpGet getReq = new HttpGet("http://jaxbot.me/weartap.php?duration=" + duration);
+            try {
+                http.execute(getReq);
             }
+            catch (Exception e) {
+            }
+
             return null;
         }
     }
