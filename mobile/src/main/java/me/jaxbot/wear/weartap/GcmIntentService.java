@@ -38,6 +38,8 @@ public class GcmIntentService extends IntentService implements GoogleApiClient.C
 
     GoogleApiClient mGoogleApiClient;
 
+    int duration;
+
     public GcmIntentService() {
         super("GcmIntentService");
     }
@@ -45,6 +47,8 @@ public class GcmIntentService extends IntentService implements GoogleApiClient.C
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d("GCM", "Handling intent");
+        Bundle extras = intent.getExtras();
+        duration = Integer.parseInt(extras.getString("duration"));
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -56,7 +60,7 @@ public class GcmIntentService extends IntentService implements GoogleApiClient.C
             mGoogleApiClient.connect();
         }
 
-        Bundle extras = intent.getExtras();
+
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         // The getMessageType() intent parameter must be the intent you received
         // in your BroadcastReceiver.
@@ -142,7 +146,7 @@ public class GcmIntentService extends IntentService implements GoogleApiClient.C
 
                     for (Node node : nodes.getNodes()) {
                         Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(),
-                                "duration", null);
+                                String.valueOf(duration), null);
                     }
                 } catch (Exception ex) {
                     msg = "Error :" + ex.getMessage();
@@ -152,6 +156,8 @@ public class GcmIntentService extends IntentService implements GoogleApiClient.C
                     // exponential back-off.
                 }
                 Log.e("E", msg);
+
+                mGoogleApiClient.disconnect();
                 return null;
             }
         }.execute(null, null, null);
